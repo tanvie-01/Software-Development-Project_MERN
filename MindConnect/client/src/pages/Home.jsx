@@ -12,12 +12,12 @@ const Home = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [date, setDate] = useState("");
-  const [time, setTime] = useState(""); 
+  const [time, setTime] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     const userInfo = localStorage.getItem("userInfo");
-    
+
     if (userInfo) {
       const parsedUser = JSON.parse(userInfo);
       setUser(parsedUser); // প্রথমে লোকাল ডাটা দেখান (UI fast রাখার জন্য)
@@ -25,76 +25,103 @@ const Home = () => {
       // --- NEW: সার্ভার থেকে লেটেস্ট ডাটা (Balance সহ) আনা ---
       const fetchLatestUserData = async () => {
         try {
-          const { data } = await axios.get(`http://localhost:5000/api/users/${parsedUser._id}`);
-          
+          const { data } = await axios.get(
+            `https://mindconnect-backend-afyf.onrender.com/api/users/${parsedUser._id}`
+          );
+
           // নতুন ডাটার সাথে আগের টোকেনটি যুক্ত করে সেভ করা (কারণ GET ইউজারে টোকেন থাকে না)
           const updatedUserData = { ...data, token: parsedUser.token };
-          
-          setUser(updatedUserData); 
-          localStorage.setItem("userInfo", JSON.stringify(updatedUserData)); 
+
+          setUser(updatedUserData);
+          localStorage.setItem("userInfo", JSON.stringify(updatedUserData));
         } catch (error) {
           console.error("Sync Failed:", error);
           // যদি ইউজার না পাওয়া যায় (ডিলিট হয়ে থাকে), লগআউট করে দেওয়া
-          if(error.response && error.response.status === 404) {
-             localStorage.removeItem("userInfo");
-             navigate("/login");
+          if (error.response && error.response.status === 404) {
+            localStorage.removeItem("userInfo");
+            navigate("/login");
           }
         }
       };
       fetchLatestUserData();
       // ------------------------------------------------------
-
     } else {
-      toast.error("Login First!"); 
-      navigate("/login"); 
+      toast.error("Login First!");
+      navigate("/login");
     }
 
-    const fetchDoctors = async () => { 
-      try { 
-        const { data } = await axios.get("http://localhost:5000/api/doctors"); 
-        setDoctors(data); 
-      } catch (e) {} 
+    const fetchDoctors = async () => {
+      try {
+        const { data } = await axios.get(
+          "https://mindconnect-backend-afyf.onrender.com/api/doctors"
+        );
+        setDoctors(data);
+      } catch (e) {}
     };
     fetchDoctors();
   }, [navigate]);
 
-  const handleLogout = () => { localStorage.removeItem("userInfo"); toast.info("Logged Out"); navigate("/login"); };
-  const openModal = (doctor) => { setSelectedDoctor(doctor); setShowModal(true); };
-  
+  const handleLogout = () => {
+    localStorage.removeItem("userInfo");
+    toast.info("Logged Out");
+    navigate("/login");
+  };
+  const openModal = (doctor) => {
+    setSelectedDoctor(doctor);
+    setShowModal(true);
+  };
+
   const handleConfirmBooking = async () => {
     if (!date || !time) return toast.warning("Select Date & Time!");
-    
+
     // ১. ব্যালেন্স চেক
     if (user.walletBalance < selectedDoctor.feesPerConsultation) {
-        toast.error("Insufficient Balance! Please add money.");
-        navigate("/wallet");
-        return;
+      toast.error("Insufficient Balance! Please add money.");
+      navigate("/wallet");
+      return;
     }
 
     try {
       const config = { headers: { "Content-Type": "application/json" } };
-      const { data } = await axios.post("http://localhost:5000/api/appointments", { 
-        userId: user._id, userName: user.name, userEmail: user.email, 
-        doctorId: selectedDoctor._id, doctorName: selectedDoctor.name, 
-        date, time, fee: selectedDoctor.feesPerConsultation 
-      }, config);
+      const { data } = await axios.post(
+        "https://mindconnect-backend-afyf.onrender.com/api/appointments",
+        {
+          userId: user._id,
+          userName: user.name,
+          userEmail: user.email,
+          doctorId: selectedDoctor._id,
+          doctorName: selectedDoctor.name,
+          date,
+          time,
+          fee: selectedDoctor.feesPerConsultation,
+        },
+        config
+      );
 
       // ২. সফল হলে ফ্রন্টএন্ডে ব্যালেন্স আপডেট করা (সার্ভার থেকে আসা remainingBalance দিয়ে)
       const updatedUser = { ...user, walletBalance: data.remainingBalance };
       localStorage.setItem("userInfo", JSON.stringify(updatedUser));
       setUser(updatedUser);
 
-      toast.success("Booking Successful! Fee deducted. 🎉"); 
-      setShowModal(false); setDate(""); setTime("");
-    } catch (e) { 
-      toast.error(e.response?.data?.message || "Booking Failed"); 
+      toast.success("Booking Successful! Fee deducted. 🎉");
+      setShowModal(false);
+      setDate("");
+      setTime("");
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Booking Failed");
     }
   };
 
   if (!user) return null;
 
-  let processedDoctors = doctors.filter((doc) => doc.name.toLowerCase().includes(searchTerm.toLowerCase()) && (filterSpecialization === "All" || doc.specialization === filterSpecialization));
-  if (sortBy === "Rating") processedDoctors.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  let processedDoctors = doctors.filter(
+    (doc) =>
+      doc.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (filterSpecialization === "All" ||
+        doc.specialization === filterSpecialization)
+  );
+  if (sortBy === "Rating")
+    processedDoctors.sort((a, b) => (b.rating || 0) - (a.rating || 0));
   const uniqueSpecs = ["All", ...new Set(doctors.map((d) => d.specialization))];
 
   return (
@@ -102,82 +129,165 @@ const Home = () => {
       {/* Gradient Navbar */}
       <nav className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg p-4 sticky top-0 z-40 text-white">
         <div className="container mx-auto flex justify-between items-center">
-          <Link to="/" className="text-2xl font-bold flex items-center gap-2">MindConnect 🌿</Link>
+          <Link to="/" className="text-2xl font-bold flex items-center gap-2">
+            MindConnect 🌿
+          </Link>
           <div className="flex items-center gap-4 text-sm font-medium">
-            {user.role === 'admin' && <Link to="/admin-dashboard" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">Admin Panel</Link>}
-            {user.role === 'doctor' && <Link to="/doctor-dashboard" className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">Doctor Panel</Link>}
-            
-            <Link to="/blogs" className="hover:text-blue-200 transition">Blogs</Link>
-            <Link to="/my-appointments" className="hover:text-blue-200 transition">Appointments</Link>
-            
+            {user.role === "admin" && (
+              <Link
+                to="/admin-dashboard"
+                className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition"
+              >
+                Admin Panel
+              </Link>
+            )}
+            {user.role === "doctor" && (
+              <Link
+                to="/doctor-dashboard"
+                className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition"
+              >
+                Doctor Panel
+              </Link>
+            )}
+
+            <Link to="/blogs" className="hover:text-blue-200 transition">
+              Blogs
+            </Link>
+            <Link
+              to="/my-appointments"
+              className="hover:text-blue-200 transition"
+            >
+              Appointments
+            </Link>
+
             {/* --- WALLET BALANCE SHOW --- */}
-            <Link to="/wallet" className="bg-green-500 hover:bg-green-600 text-white px-4 py-1.5 rounded-full font-bold shadow-md flex items-center gap-2 transition">
-               <span>💳</span> {user.walletBalance} ৳
+            <Link
+              to="/wallet"
+              className="bg-green-500 hover:bg-green-600 text-white px-4 py-1.5 rounded-full font-bold shadow-md flex items-center gap-2 transition"
+            >
+              <span>💳</span> {user.walletBalance} ৳
             </Link>
             {/* ------------------------- */}
 
-            <Link to="/profile" className="hover:text-blue-200 transition">Profile</Link>
-            <Link to="/mental-test" className="hover:text-blue-200 transition">Test</Link>
+            <Link to="/profile" className="hover:text-blue-200 transition">
+              Profile
+            </Link>
+            <Link to="/mental-test" className="hover:text-blue-200 transition">
+              Test
+            </Link>
             <div className="w-px h-6 bg-white/30 mx-2"></div>
             <span className="opacity-90">Hi, {user.name}</span>
-            <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-full shadow-md transition">Logout</button>
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded-full shadow-md transition"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
       <div className="container mx-auto mt-8 p-6">
-        
         {/* Welcome Banner */}
         <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white p-10 rounded-3xl shadow-xl mb-10 flex flex-col md:flex-row items-center justify-between relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
           <div className="relative z-10">
-            <h2 className="text-4xl font-extrabold mb-2">Welcome to Your Wellness Hub</h2>
-            <p className="opacity-90 text-lg">Book appointments, track health, and find peace.</p>
+            <h2 className="text-4xl font-extrabold mb-2">
+              Welcome to Your Wellness Hub
+            </h2>
+            <p className="opacity-90 text-lg">
+              Book appointments, track health, and find peace.
+            </p>
           </div>
           <div className="relative z-10 mt-4 md:mt-0 bg-white/20 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/20">
-             <span className="text-2xl font-bold">Health Status: Excellent 🌟</span>
+            <span className="text-2xl font-bold">
+              Health Status: Excellent 🌟
+            </span>
           </div>
         </div>
 
         {/* Filter Section */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-10 flex flex-col md:flex-row gap-4">
-            <input type="text" placeholder="🔍 Search doctor..." className="flex-1 border-2 border-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-            <select className="border-2 border-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 bg-white" value={filterSpecialization} onChange={(e) => setFilterSpecialization(e.target.value)}>
-                {uniqueSpecs.map((s, i) => <option key={i} value={s}>{s === 'All' ? 'Filter by Category' : s}</option>)}
-            </select>
-            <select className="border-2 border-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 bg-white" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                <option value="None">Sort By: Default</option>
-                <option value="Rating">Rating: High to Low</option>
-            </select>
+          <input
+            type="text"
+            placeholder="🔍 Search doctor..."
+            className="flex-1 border-2 border-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <select
+            className="border-2 border-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 bg-white"
+            value={filterSpecialization}
+            onChange={(e) => setFilterSpecialization(e.target.value)}
+          >
+            {uniqueSpecs.map((s, i) => (
+              <option key={i} value={s}>
+                {s === "All" ? "Filter by Category" : s}
+              </option>
+            ))}
+          </select>
+          <select
+            className="border-2 border-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 bg-white"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="None">Sort By: Default</option>
+            <option value="Rating">Rating: High to Low</option>
+          </select>
         </div>
 
-        <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2"><span className="w-1.5 h-8 bg-blue-600 rounded-full"></span> Available Specialists</h3>
+        <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+          <span className="w-1.5 h-8 bg-blue-600 rounded-full"></span> Available
+          Specialists
+        </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {processedDoctors.map((doctor) => (
-            <div key={doctor._id} className="group bg-white p-6 rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:-translate-y-2 relative overflow-hidden">
+            <div
+              key={doctor._id}
+              className="group bg-white p-6 rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:-translate-y-2 relative overflow-hidden"
+            >
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-2xl -mr-10 -mt-10 transition group-hover:bg-blue-100"></div>
-              
+
               <div className="flex items-center mb-6 relative z-10">
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg mr-4">
                   {doctor.name.charAt(0)}
                 </div>
                 <div>
-                  <Link to={`/doctor/${doctor._id}`}><h4 className="text-xl font-bold text-gray-800 hover:text-blue-600 transition">{doctor.name}</h4></Link>
-                  <p className="text-blue-500 font-medium text-sm">{doctor.specialization}</p>
+                  <Link to={`/doctor/${doctor._id}`}>
+                    <h4 className="text-xl font-bold text-gray-800 hover:text-blue-600 transition">
+                      {doctor.name}
+                    </h4>
+                  </Link>
+                  <p className="text-blue-500 font-medium text-sm">
+                    {doctor.specialization}
+                  </p>
                   <div className="flex items-center text-xs text-yellow-500 mt-1 font-bold bg-yellow-50 px-2 py-0.5 rounded w-fit">
-                      <span>★ {doctor.rating ? doctor.rating.toFixed(1) : "0.0"}</span>
+                    <span>
+                      ★ {doctor.rating ? doctor.rating.toFixed(1) : "0.0"}
+                    </span>
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-3 text-gray-600 text-sm mb-8 relative z-10">
-                <div className="flex justify-between border-b border-gray-50 pb-2"><span>Experience</span> <span className="font-semibold">{doctor.experience}</span></div>
-                <div className="flex justify-between border-b border-gray-50 pb-2"><span>Consultation Fee</span> <span className="font-bold text-green-600">{doctor.feesPerConsultation} BDT</span></div>
+                <div className="flex justify-between border-b border-gray-50 pb-2">
+                  <span>Experience</span>{" "}
+                  <span className="font-semibold">{doctor.experience}</span>
+                </div>
+                <div className="flex justify-between border-b border-gray-50 pb-2">
+                  <span>Consultation Fee</span>{" "}
+                  <span className="font-bold text-green-600">
+                    {doctor.feesPerConsultation} BDT
+                  </span>
+                </div>
               </div>
-              
-              <button onClick={() => openModal(doctor)} className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-blue-600 transition shadow-lg relative z-10">
+
+              <button
+                onClick={() => openModal(doctor)}
+                className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-blue-600 transition shadow-lg relative z-10"
+              >
                 Book Appointment
               </button>
             </div>
@@ -189,29 +299,67 @@ const Home = () => {
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 animate-fade-in">
           <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md relative animate-bounce-in">
-            <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
-            <h3 className="text-2xl font-bold mb-1 text-gray-800">Confirm Booking</h3>
-            <p className="text-gray-500 text-sm mb-6">Payment will be deducted from wallet</p>
-            
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl font-bold"
+            >
+              &times;
+            </button>
+            <h3 className="text-2xl font-bold mb-1 text-gray-800">
+              Confirm Booking
+            </h3>
+            <p className="text-gray-500 text-sm mb-6">
+              Payment will be deducted from wallet
+            </p>
+
             <div className="bg-blue-50 p-4 rounded-xl mb-6 border border-blue-100">
-                <p className="font-bold text-blue-800">{selectedDoctor?.name}</p>
-                <div className="flex justify-between mt-2">
-                   <span className="text-sm text-gray-600">Consultation Fee:</span>
-                   <span className="font-bold text-red-600">-{selectedDoctor?.feesPerConsultation} BDT</span>
-                </div>
-                <div className="flex justify-between mt-1 border-t border-blue-200 pt-1">
-                   <span className="text-sm text-gray-600">Your Balance:</span>
-                   <span className={`font-bold ${user.walletBalance < selectedDoctor?.feesPerConsultation ? 'text-red-500' : 'text-green-600'}`}>{user.walletBalance} BDT</span>
-                </div>
+              <p className="font-bold text-blue-800">{selectedDoctor?.name}</p>
+              <div className="flex justify-between mt-2">
+                <span className="text-sm text-gray-600">Consultation Fee:</span>
+                <span className="font-bold text-red-600">
+                  -{selectedDoctor?.feesPerConsultation} BDT
+                </span>
+              </div>
+              <div className="flex justify-between mt-1 border-t border-blue-200 pt-1">
+                <span className="text-sm text-gray-600">Your Balance:</span>
+                <span
+                  className={`font-bold ${
+                    user.walletBalance < selectedDoctor?.feesPerConsultation
+                      ? "text-red-500"
+                      : "text-green-600"
+                  }`}
+                >
+                  {user.walletBalance} BDT
+                </span>
+              </div>
             </div>
 
-            <label className="block text-gray-700 font-bold text-sm mb-2">Select Date</label>
-            <input type="date" className="w-full bg-gray-50 border-0 rounded-xl px-4 py-3 mb-4 focus:ring-2 focus:ring-blue-500" value={date} onChange={(e) => setDate(e.target.value)}/>
-            
-            <label className="block text-gray-700 font-bold text-sm mb-2">Select Time</label>
-            <input type="time" className="w-full bg-gray-50 border-0 rounded-xl px-4 py-3 mb-8 focus:ring-2 focus:ring-blue-500" value={time} onChange={(e) => setTime(e.target.value)}/>
-            
-            <button onClick={handleConfirmBooking} className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3.5 rounded-xl font-bold shadow-lg hover:scale-[1.02] transition">Pay & Confirm</button>
+            <label className="block text-gray-700 font-bold text-sm mb-2">
+              Select Date
+            </label>
+            <input
+              type="date"
+              className="w-full bg-gray-50 border-0 rounded-xl px-4 py-3 mb-4 focus:ring-2 focus:ring-blue-500"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+
+            <label className="block text-gray-700 font-bold text-sm mb-2">
+              Select Time
+            </label>
+            <input
+              type="time"
+              className="w-full bg-gray-50 border-0 rounded-xl px-4 py-3 mb-8 focus:ring-2 focus:ring-blue-500"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+            />
+
+            <button
+              onClick={handleConfirmBooking}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3.5 rounded-xl font-bold shadow-lg hover:scale-[1.02] transition"
+            >
+              Pay & Confirm
+            </button>
           </div>
         </div>
       )}
