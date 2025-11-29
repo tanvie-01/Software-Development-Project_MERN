@@ -4,8 +4,7 @@ const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
 const bcrypt = require("bcryptjs");
 const Appointment = require("../models/Appointment");
-const Doctor = require("../models/Doctor");
-const nodemailer = require("nodemailer"); // ১. Nodemailer ইম্পোর্ট
+const nodemailer = require("nodemailer");
 const Transaction = require("../models/Transaction");
 
 // ১. রেজিস্ট্রেশন
@@ -22,7 +21,7 @@ router.post("/register", async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        walletBalance: user.walletBalance, // <--- এই লাইনটি যোগ হয়েছে
+        walletBalance: user.walletBalance,
         token: generateToken(user._id),
       });
     } else {
@@ -44,7 +43,7 @@ router.post("/login", async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        walletBalance: user.walletBalance, // <--- এই লাইনটি যোগ হয়েছে
+        walletBalance: user.walletBalance,
         token: generateToken(user._id),
       });
     } else {
@@ -55,7 +54,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// ৩. রোল আপডেট (Make Admin/Doctor)
+// ৩. রোল আপডেট
 router.put("/make-admin", async (req, res) => {
   const { email, role } = req.body;
   try {
@@ -97,15 +96,13 @@ router.put("/profile", async (req, res) => {
   }
 });
 
-// ৭. অ্যাডমিন অ্যানালিটিক্স + ইনকাম (UPDATED LOGIC) ✅
+// ৭. অ্যাডমিন অ্যানালিটিক্স + ইনকাম
 router.get("/stats", async (req, res) => {
   try {
     const userCount = await User.countDocuments({ role: "user" });
     const doctorCount = await User.countDocuments({ role: "doctor" });
     const appointmentCount = await Appointment.countDocuments({});
     
-    // লজিক: ইনকাম যোগ হবে যদি স্ট্যাটাস 'approved' অথবা 'completed' হয়।
-    // 'cancelled' বা 'pending' হলে যোগ হবে না।
     const activeAppointments = await Appointment.find({ 
       status: { $in: ["approved", "completed"] } 
     });
@@ -119,7 +116,7 @@ router.get("/stats", async (req, res) => {
 });
 
 // ---------------------------------------------------------
-// ৬. পাসওয়ার্ড রিসেট লিংক পাঠানো (LIVE EMAIL SYSTEM) 📧
+// ৬. পাসওয়ার্ড রিসেট লিংক পাঠানো (FIXED FOR RENDER) ✅
 // ---------------------------------------------------------
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
@@ -130,18 +127,22 @@ router.post("/forgot-password", async (req, res) => {
     }
 
     const resetToken = user._id + "_" + Date.now();
-    const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+    
+    // লাইভ এবং লোকাল দুই জায়গাতেই কাজ করার লজিক
+    const clientURL = process.env.CLIENT_URL || "http://localhost:5173";
+    const resetLink = `${clientURL}/reset-password/${resetToken}`;
 
-    // ২. ইমেইল কনফিগারেশন (.env থেকে পাসওয়ার্ড নিবে)
+    // 🔥 পরিবর্তন: পোর্ট ৫৮৭ ব্যবহার করা হয়েছে Timeout ফিক্স করার জন্য
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false, // true for 465, false for other ports
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
     });
 
-    // ৩. ইমেইল এর বিষয়বস্তু
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
@@ -157,7 +158,6 @@ router.post("/forgot-password", async (req, res) => {
       `,
     };
 
-    // ৪. ইমেইল পাঠানো
     await transporter.sendMail(mailOptions);
     console.log("✅ Email sent successfully to:", email);
 
@@ -169,7 +169,7 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-// ৭. নতুন পাসওয়ার্ড সেট করা (Reset Password)
+// ৭. নতুন পাসওয়ার্ড সেট করা
 router.post("/reset-password", async (req, res) => {
   const { token, newPassword } = req.body;
   try {
@@ -185,24 +185,19 @@ router.post("/reset-password", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-// ... আগের সব রাউট ...
 
-// ৮. পাসওয়ার্ড চেক করে একাউন্ট ডিলিট করা (Secure Delete)
+// ৮. একাউন্ট ডিলিট করা
 router.post("/delete-account", async (req, res) => {
   const { userId, password } = req.body;
-
   try {
     const user = await User.findById(userId);
-
     if (user) {
-      // পাসওয়ার্ড চেক করা
       const isMatch = await bcrypt.compare(password, user.password);
-      
       if (isMatch) {
         await User.findByIdAndDelete(userId);
         res.json({ message: "Account deleted successfully" });
       } else {
-        res.status(401).json({ message: "Incorrect Password!" }); // পাসওয়ার্ড ভুল হলে
+        res.status(401).json({ message: "Incorrect Password!" });
       }
     } else {
       res.status(404).json({ message: "User not found" });
@@ -212,27 +207,20 @@ router.post("/delete-account", async (req, res) => {
   }
 });
 
-// ... আগের সব রাউট ...
-
-// ৯. টাকা এড করা (Add Money + Transaction Record) ✅
+// ৯. টাকা এড করা
 router.put("/add-money", async (req, res) => {
   const { userId, amount } = req.body;
-
   try {
     const user = await User.findById(userId);
     if (user) {
       user.walletBalance += Number(amount);
       await user.save();
-
-      // --- রেকর্ড সেভ করা ---
       await Transaction.create({
         userId,
         amount: Number(amount),
         type: "credit",
         description: "Added Money via Wallet",
       });
-      // ---------------------
-
       res.json({ 
         message: "Money added successfully!", 
         balance: user.walletBalance,
@@ -246,10 +234,10 @@ router.put("/add-money", async (req, res) => {
   }
 });
 
-// ৯. নির্দিষ্ট ইউজারের তথ্য পাওয়ার জন্য (Auto Sync এর জন্য) ✅
+// ১০. নির্দিষ্ট ইউজারের তথ্য
 router.get("/:id", async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("-password"); // পাসওয়ার্ড ছাড়া বাকি সব দিবে
+    const user = await User.findById(req.params.id).select("-password");
     if (user) {
       res.json(user);
     } else {
@@ -261,4 +249,3 @@ router.get("/:id", async (req, res) => {
 });
 
 module.exports = router;
-
