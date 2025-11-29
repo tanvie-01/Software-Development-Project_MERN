@@ -132,11 +132,11 @@ router.post("/forgot-password", async (req, res) => {
     const clientURL = process.env.CLIENT_URL || "http://localhost:5173";
     const resetLink = `${clientURL}/reset-password/${resetToken}`;
 
-    // 🔥 পরিবর্তন: পোর্ট ৫৮৭ ব্যবহার করা হয়েছে Timeout ফিক্স করার জন্য
+    // 🔥 পরিবর্তন: পোর্ট ৪৬৫ (SSL) ব্যবহার করা হচ্ছে
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 587,
-      secure: false, // true for 465, false for other ports
+      port: 465,
+      secure: true, // 465 পোর্টের জন্য এটি true হতে হবে
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
