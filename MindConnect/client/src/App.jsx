@@ -14,6 +14,7 @@ import ResetPassword from "./pages/ResetPassword";
 import BlogDetails from "./pages/BlogDetails";
 import MentalTest from "./pages/MentalTest";
 import Wallet from "./pages/Wallet";
+import AiChatBot from "./components/AiChatBot";
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
         <Route path="/mental-test" element={<MentalTest />} />
         <Route path="/wallet" element={<Wallet />} />
       </Routes>
+      <AiChatBot />
     </BrowserRouter>
   );
 }
