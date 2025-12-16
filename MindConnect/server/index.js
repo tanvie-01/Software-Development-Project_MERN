@@ -8,6 +8,7 @@ const appointmentRoutes = require('./routes/appointmentRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 const testRoutes = require('./routes/testRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
+const aiRoutes = require("./routes/aiRoutes");
 
 dotenv.config();
 connectDB();
@@ -27,6 +28,7 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use("/api/ai", aiRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
