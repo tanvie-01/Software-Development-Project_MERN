@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+// ✅ ফিক্স ১: চ্যাটবট ইমপোর্ট করা হয়েছে
+import AiChatBot from "../components/AiChatBot";
+import myLocalHeroImage from "../assets/picture/mindconnect.jpg";
 
 // স্টেবল হিরো ইমেজ
-const heroImage =
-  "https://images.pexels.com/photos/3184405/pexels-photo-3184405.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1";
+const heroImage = myLocalHeroImage;
 
 const LandingPage = () => {
   const [doctors, setDoctors] = useState([]);
@@ -49,9 +51,10 @@ const LandingPage = () => {
   const displayedDoctors = showAllDoctors ? doctors : doctors.slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans overflow-x-hidden">
-      {/* 1. Navbar (Mental Test Added Back) */}
-      <nav className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg p-4 sticky top-0 z-50 text-white">
+    // ✅ ফিক্স ২: pb-24 দেওয়া হয়েছে যাতে চ্যাটবট ফুটার ঢেকে না দেয়
+    <div className="min-h-screen bg-gray-50 font-sans overflow-x-hidden pb-24">
+      {/* 1. Navbar */}
+      <nav className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg p-4 sticky top-0 z-40 text-white">
         <div className="container mx-auto flex justify-between items-center">
           <div
             className="flex items-center gap-2 cursor-pointer"
@@ -70,14 +73,12 @@ const LandingPage = () => {
               Blogs
             </Link>
 
-            {/* --- Mental Test Button (FIXED) --- */}
             <Link
               to="/mental-test"
               className="text-yellow-300 hover:text-yellow-100 font-bold transition flex items-center gap-1"
             >
               Mental Test 🧠
             </Link>
-            {/* ---------------------------------- */}
 
             <div className="w-px h-6 bg-white/30 mx-2"></div>
             <Link to="/login" className="hover:text-blue-200 transition">
@@ -100,16 +101,19 @@ const LandingPage = () => {
 
         <div className="container mx-auto px-6 flex flex-col-reverse md:flex-row items-center gap-12 relative z-10">
           <div className="md:w-1/2 text-center md:text-left">
-            <span className="bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wide mb-6 inline-block shadow-sm">
+            <span className="bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 px-4 py-1.5 rounded-full text-xs md:text-sm font-bold uppercase tracking-wide mb-6 inline-block shadow-sm">
               Mental Healthcare for Everyone
             </span>
-            <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6 leading-tight">
+            
+            {/* ✅ ফিক্স ৩: মোবাইলে টেক্সট সাইজ কমানো হয়েছে (text-4xl) যাতে ভেঙে না যায় */}
+            <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight">
               Your Journey to <br />{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
                 Inner Peace
               </span>
             </h1>
-            <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-lg">
+
+            <p className="text-lg md:text-xl text-gray-600 mb-10 leading-relaxed max-w-lg mx-auto md:mx-0">
               Connect with certified therapists and psychiatrists instantly.
               Private, secure, and compassionate care whenever you need it.
             </p>
@@ -132,7 +136,7 @@ const LandingPage = () => {
               </a>
             </div>
           </div>
-          <div className="md:w-1/2">
+          <div className="md:w-1/2 w-full">
             <div className="relative">
               <div className="absolute -inset-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl blur-lg opacity-30"></div>
               <img
@@ -149,10 +153,10 @@ const LandingPage = () => {
       <section id="services" className="py-24 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">
               Why Choose MindConnect?
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
               Comprehensive mental health services tailored to your needs.
             </p>
           </div>
@@ -196,10 +200,10 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* 4. Doctors (Toggle Button Logic Added) */}
+      {/* 4. Doctors */}
       <section id="doctors" className="py-24 bg-white">
         <div className="container mx-auto px-6">
-          <h2 className="text-4xl font-extrabold text-center text-gray-900 mb-16">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-16">
             Meet Our Specialists
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -230,7 +234,6 @@ const LandingPage = () => {
             ))}
           </div>
 
-          {/* Button Logic */}
           {doctors.length > 4 && (
             <div className="text-center mt-16">
               <button
@@ -247,7 +250,7 @@ const LandingPage = () => {
       {/* 5. Blogs */}
       <section id="blogs" className="py-24 bg-gray-50">
         <div className="container mx-auto px-6">
-          <h2 className="text-4xl font-extrabold text-center text-gray-900 mb-16">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-16">
             Latest Articles
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -296,7 +299,7 @@ const LandingPage = () => {
       <section className="py-24 bg-gray-900 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
         <div className="container mx-auto px-6 text-center relative z-10">
-          <h2 className="text-4xl font-extrabold mb-16">Meet The Developers</h2>
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-16">Meet The Developers</h2>
           <div className="flex flex-wrap justify-center gap-10">
             {developers.map((dev, index) => (
               <div
@@ -325,6 +328,9 @@ const LandingPage = () => {
       <footer className="bg-black text-gray-500 py-10 text-center text-sm font-medium">
         <p>&copy; 2025 MindConnect. Built with ❤️ for better mental health.</p>
       </footer>
+
+      {/* ✅ ফিক্স ৪: চ্যাটবট যুক্ত করা হয়েছে */}
+      <AiChatBot />
     </div>
   );
 };
