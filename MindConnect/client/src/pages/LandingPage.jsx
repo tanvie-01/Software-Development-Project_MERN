@@ -10,10 +10,11 @@ const LandingPage = () => {
   const [doctors, setDoctors] = useState([]);
   const [blogs, setBlogs] = useState([]);
   const [showAllDoctors, setShowAllDoctors] = useState(false);
-  
-  // ✅ আপডেট ১: ইউজার স্টেট যোগ করা হয়েছে
   const [user, setUser] = useState(null);
   
+  // ✅ ১. মোবাইল মেনুর জন্য নতুন স্টেট
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const navigate = useNavigate();
 
   const developers = [
@@ -24,7 +25,6 @@ const LandingPage = () => {
   ];
 
   useEffect(() => {
-    // ✅ আপডেট ২: লোকাল স্টোরেজ চেক
     const userInfo = localStorage.getItem("userInfo");
     if (userInfo) {
       setUser(JSON.parse(userInfo));
@@ -47,7 +47,6 @@ const LandingPage = () => {
     fetchData();
   }, []);
 
-  // ✅ আপডেট ৩: লগআউট ফাংশন
   const handleLogout = () => {
     localStorage.removeItem("userInfo");
     setUser(null);
@@ -55,7 +54,6 @@ const LandingPage = () => {
     navigate("/login");
   };
 
-  // ✅ আপডেট ৪: ড্যাশবোর্ড রিডাইরেক্ট লজিক
   const goToDashboard = () => {
     if (user?.role === 'admin') navigate("/admin-dashboard");
     else if (user?.role === 'doctor') navigate("/doctor-dashboard");
@@ -74,71 +72,84 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans overflow-x-hidden pb-24">
-      {/* 1. Navbar */}
-      <nav className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg p-4 sticky top-0 z-40 text-white">
+      
+      {/* 1. Navbar (Responsive) */}
+      <nav className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg p-4 sticky top-0 z-50 text-white">
         <div className="container mx-auto flex justify-between items-center">
+          
+          {/* Logo */}
           <div
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => window.scrollTo(0, 0)}
           >
             <div className="text-2xl font-bold">MindConnect 🌿</div>
           </div>
-          <div className="space-x-6 hidden md:flex items-center font-medium">
-            <a href="#services" className="hover:text-blue-200 transition">
-              Services
-            </a>
-            <a href="#doctors" className="hover:text-blue-200 transition">
-              Doctors
-            </a>
-            <Link to="/blogs" className="hover:text-blue-200 transition">
-              Blogs
-            </Link>
 
-            <Link
-              to="/mental-test"
-              className="text-yellow-300 hover:text-yellow-100 font-bold transition flex items-center gap-1"
-            >
-              Mental Test 🧠
-            </Link>
+          {/* ✅ ২. মোবাইল হ্যামবার্গার বাটন (শুধুমাত্র মোবাইলে দেখাবে) */}
+          <button 
+            className="md:hidden text-white focus:outline-none"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? (
+              // Close Icon (X)
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            ) : (
+              // Menu Icon (Hamburger)
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            )}
+          </button>
 
+          {/* ✅ ৩. ডেস্কটপ মেনু (hidden md:flex) */}
+          <div className="hidden md:flex items-center space-x-6 font-medium">
+            <a href="#services" className="hover:text-blue-200 transition">Services</a>
+            <a href="#doctors" className="hover:text-blue-200 transition">Doctors</a>
+            <Link to="/blogs" className="hover:text-blue-200 transition">Blogs</Link>
+            <Link to="/mental-test" className="text-yellow-300 hover:text-yellow-100 font-bold flex items-center gap-1">Mental Test 🧠</Link>
+            
             <div className="w-px h-6 bg-white/30 mx-2"></div>
 
-            {/* ✅ আপডেট ৫: কন্ডিশনাল রেন্ডারিং (লগইন থাকলে ড্যাশবোর্ড বাটন দেখাবে) */}
             {user ? (
               <div className="flex items-center gap-4">
                 <span className="font-bold text-yellow-300">Hi, {user.name.split(' ')[0]}</span>
-                
-                <button 
-                  onClick={goToDashboard} 
-                  className="bg-white text-blue-600 px-4 py-2 rounded-full font-bold hover:bg-gray-100 transition shadow-md"
-                >
-                  Dashboard
-                </button>
-                
-                <button 
-                  onClick={handleLogout} 
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full font-bold transition shadow-md"
-                >
-                  Logout
-                </button>
+                <button onClick={goToDashboard} className="bg-white text-blue-600 px-4 py-2 rounded-full font-bold hover:bg-gray-100 transition shadow-md">Dashboard</button>
+                <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full font-bold transition shadow-md">Logout</button>
               </div>
             ) : (
               <>
-                <Link to="/login" className="hover:text-blue-200 transition">
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="bg-white text-blue-600 px-5 py-2 rounded-full font-bold hover:bg-gray-100 transition shadow-md"
-                >
-                  Sign Up
-                </Link>
+                <Link to="/login" className="hover:text-blue-200 transition">Login</Link>
+                <Link to="/register" className="bg-white text-blue-600 px-5 py-2 rounded-full font-bold hover:bg-gray-100 transition shadow-md">Sign Up</Link>
               </>
             )}
           </div>
         </div>
+
+        {/* ✅ ৪. মোবাইল মেনু ড্রপডাউন (শুধুমাত্র যখন isMenuOpen সত্য হবে) */}
+        {isMenuOpen && (
+          <div className="md:hidden mt-4 bg-white/10 backdrop-blur-md rounded-xl p-4 flex flex-col space-y-4 animate-fade-in border border-white/20">
+            <a href="#services" onClick={()=>setIsMenuOpen(false)} className="hover:text-blue-200 transition block">Services</a>
+            <a href="#doctors" onClick={()=>setIsMenuOpen(false)} className="hover:text-blue-200 transition block">Doctors</a>
+            <Link to="/blogs" onClick={()=>setIsMenuOpen(false)} className="hover:text-blue-200 transition block">Blogs</Link>
+            <Link to="/mental-test" onClick={()=>setIsMenuOpen(false)} className="text-yellow-300 font-bold block">Mental Test 🧠</Link>
+            
+            <div className="h-px bg-white/30 w-full"></div>
+
+            {user ? (
+              <div className="flex flex-col gap-3">
+                <span className="font-bold text-yellow-300">Welcome, {user.name}</span>
+                <button onClick={()=>{goToDashboard(); setIsMenuOpen(false)}} className="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold text-center">Go to Dashboard</button>
+                <button onClick={()=>{handleLogout(); setIsMenuOpen(false)}} className="bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-center">Logout</button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <Link to="/login" onClick={()=>setIsMenuOpen(false)} className="text-center hover:text-blue-200 transition">Login</Link>
+                <Link to="/register" onClick={()=>setIsMenuOpen(false)} className="bg-white text-blue-600 px-5 py-2 rounded-lg font-bold text-center">Sign Up</Link>
+              </div>
+            )}
+          </div>
+        )}
       </nav>
 
+      {/* --- বাকি কন্টেন্ট (Hero, Services, etc.) অপরিবর্তিত থাকবে --- */}
       {/* 2. Hero Section */}
       <header className="relative pt-24 pb-32 overflow-hidden bg-white">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-100 rounded-full blur-3xl -mr-20 -mt-20 opacity-70"></div>
