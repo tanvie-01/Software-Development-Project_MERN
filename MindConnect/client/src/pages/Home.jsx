@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-// ✅ Chatbot ইমপোর্ট করা হয়েছে
-import AiChatBot from "../components/AiChatBot"; 
+import AiChatBot from "../components/AiChatBot";
 
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -24,7 +23,6 @@ const Home = () => {
       const parsedUser = JSON.parse(userInfo);
       setUser(parsedUser);
 
-      // --- সার্ভার থেকে লেটেস্ট ডাটা সিঙ্ক করা ---
       const fetchLatestUserData = async () => {
         try {
           const { data } = await axios.get(
@@ -123,9 +121,11 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gray-50 font-sans relative pb-20">
       
-      {/* Navbar: মোবাইলে flex-col (নিচে নিচে) এবং পিসিতে md:flex-row (পাশাপাশি) */}
+      {/* Navbar */}
       <nav className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg p-4 sticky top-0 z-40 text-white">
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
+          
+          {/* ✅ লোগো এখন হোম পেজে লিঙ্ক করা */}
           <Link to="/" className="text-2xl font-bold flex items-center gap-2 mb-3 md:mb-0">
             MindConnect 🌿
           </Link>
@@ -160,7 +160,7 @@ const Home = () => {
       {/* Main Content */}
       <div className="container mx-auto mt-8 p-4 md:p-6">
         
-        {/* Banner: মোবাইলে টেক্সট ছোট হবে */}
+        {/* Banner */}
         <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white p-6 md:p-10 rounded-3xl shadow-xl mb-10 flex flex-col md:flex-row items-center justify-between relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
           <div className="relative z-10 mb-4 md:mb-0 text-center md:text-left">
@@ -172,7 +172,7 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Filter Section: মোবাইলে ইনপুটগুলো নিচে নিচে আসবে */}
+        {/* Filter Section */}
         <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 mb-10 flex flex-col md:flex-row gap-4">
           <input
             type="text"
@@ -204,7 +204,7 @@ const Home = () => {
           <span className="w-1.5 h-8 bg-blue-600 rounded-full"></span> Available Specialists
         </h3>
 
-        {/* Grid: মোবাইলে ১ কলাম, ট্যাবে ২, পিসিতে ৩ */}
+        {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {processedDoctors.map((doctor) => (
             <div
@@ -217,7 +217,7 @@ const Home = () => {
                 <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg mr-4 shrink-0">
                   {doctor.name.charAt(0)}
                 </div>
-                <div className="min-w-0"> {/* Text Overflow Fix */}
+                <div className="min-w-0">
                   <Link to={`/doctor/${doctor._id}`}>
                     <h4 className="text-lg md:text-xl font-bold text-gray-800 hover:text-blue-600 transition truncate">{doctor.name}</h4>
                   </Link>
@@ -301,7 +301,6 @@ const Home = () => {
         </div>
       )}
       
-      {/* ✅ Chatbot Integration (সবার শেষে) */}
       <AiChatBot />
 
     </div>

@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-// ✅ ফিক্স ১: চ্যাটবট ইমপোর্ট করা হয়েছে
 import AiChatBot from "../components/AiChatBot";
 import myLocalHeroImage from "../assets/picture/mindconnect.jpg";
 
-// স্টেবল হিরো ইমেজ
 const heroImage = myLocalHeroImage;
 
 const LandingPage = () => {
   const [doctors, setDoctors] = useState([]);
   const [blogs, setBlogs] = useState([]);
   const [showAllDoctors, setShowAllDoctors] = useState(false);
+  
+  // ✅ আপডেট ১: ইউজার স্টেট যোগ করা হয়েছে
+  const [user, setUser] = useState(null);
+  
   const navigate = useNavigate();
 
   const developers = [
@@ -22,6 +24,12 @@ const LandingPage = () => {
   ];
 
   useEffect(() => {
+    // ✅ আপডেট ২: লোকাল স্টোরেজ চেক
+    const userInfo = localStorage.getItem("userInfo");
+    if (userInfo) {
+      setUser(JSON.parse(userInfo));
+    }
+
     const fetchData = async () => {
       try {
         const docRes = await axios.get(
@@ -39,9 +47,23 @@ const LandingPage = () => {
     fetchData();
   }, []);
 
+  // ✅ আপডেট ৩: লগআউট ফাংশন
+  const handleLogout = () => {
+    localStorage.removeItem("userInfo");
+    setUser(null);
+    alert("Logged out successfully!");
+    navigate("/login");
+  };
+
+  // ✅ আপডেট ৪: ড্যাশবোর্ড রিডাইরেক্ট লজিক
+  const goToDashboard = () => {
+    if (user?.role === 'admin') navigate("/admin-dashboard");
+    else if (user?.role === 'doctor') navigate("/doctor-dashboard");
+    else navigate("/dashboard");
+  };
+
   const handleBookAppointment = () => {
-    const userInfo = localStorage.getItem("userInfo");
-    if (userInfo) navigate("/dashboard");
+    if (user) navigate("/dashboard");
     else {
       alert("Please Login!");
       navigate("/login");
@@ -51,7 +73,6 @@ const LandingPage = () => {
   const displayedDoctors = showAllDoctors ? doctors : doctors.slice(0, 4);
 
   return (
-    // ✅ ফিক্স ২: pb-24 দেওয়া হয়েছে যাতে চ্যাটবট ফুটার ঢেকে না দেয়
     <div className="min-h-screen bg-gray-50 font-sans overflow-x-hidden pb-24">
       {/* 1. Navbar */}
       <nav className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg p-4 sticky top-0 z-40 text-white">
@@ -81,15 +102,39 @@ const LandingPage = () => {
             </Link>
 
             <div className="w-px h-6 bg-white/30 mx-2"></div>
-            <Link to="/login" className="hover:text-blue-200 transition">
-              Login
-            </Link>
-            <Link
-              to="/register"
-              className="bg-white text-blue-600 px-5 py-2 rounded-full font-bold hover:bg-gray-100 transition shadow-md"
-            >
-              Sign Up
-            </Link>
+
+            {/* ✅ আপডেট ৫: কন্ডিশনাল রেন্ডারিং (লগইন থাকলে ড্যাশবোর্ড বাটন দেখাবে) */}
+            {user ? (
+              <div className="flex items-center gap-4">
+                <span className="font-bold text-yellow-300">Hi, {user.name.split(' ')[0]}</span>
+                
+                <button 
+                  onClick={goToDashboard} 
+                  className="bg-white text-blue-600 px-4 py-2 rounded-full font-bold hover:bg-gray-100 transition shadow-md"
+                >
+                  Dashboard
+                </button>
+                
+                <button 
+                  onClick={handleLogout} 
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full font-bold transition shadow-md"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <>
+                <Link to="/login" className="hover:text-blue-200 transition">
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="bg-white text-blue-600 px-5 py-2 rounded-full font-bold hover:bg-gray-100 transition shadow-md"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -105,7 +150,6 @@ const LandingPage = () => {
               Mental Healthcare for Everyone
             </span>
             
-            {/* ✅ ফিক্স ৩: মোবাইলে টেক্সট সাইজ কমানো হয়েছে (text-4xl) যাতে ভেঙে না যায় */}
             <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight">
               Your Journey to <br />{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
@@ -329,7 +373,6 @@ const LandingPage = () => {
         <p>&copy; 2025 MindConnect. Built with ❤️ for better mental health.</p>
       </footer>
 
-      {/* ✅ ফিক্স ৪: চ্যাটবট যুক্ত করা হয়েছে */}
       <AiChatBot />
     </div>
   );

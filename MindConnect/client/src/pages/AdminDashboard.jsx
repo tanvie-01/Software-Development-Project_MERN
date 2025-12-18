@@ -17,18 +17,17 @@ const AdminDashboard = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editDocId, setEditDocId] = useState(null);
 
-  // --- ১. স্টেট ফিক্স (সব ফিল্ড ডিফল্ট ভ্যালু সহ) ---
   const [docData, setDocData] = useState({
     name: "",
     email: "",
     password: "",
+    phone: "",
     specialization: "",
-    degree: "", // নতুন
-    medicalCollege: "", // নতুন
-    currentHospital: "", // নতুন
+    degree: "",
+    medicalCollege: "",
+    currentHospital: "",
     experience: "",
     feesPerConsultation: "",
-    phone: "",
   });
 
   const [blogTitle, setBlogTitle] = useState("");
@@ -105,7 +104,6 @@ const AdminDashboard = () => {
         );
         toast.success("New Doctor Added! 🎉");
       }
-      // --- ২. ফর্ম রিসেট ফিক্স ---
       setDocData({
         name: "",
         email: "",
@@ -127,7 +125,6 @@ const AdminDashboard = () => {
   };
 
   const handleEditClick = (doc) => {
-    // --- ৩. এডিট ক্লিক ফিক্স (|| "" দেওয়া হয়েছে যাতে আনডিফাইন্ড না হয়) ---
     setDocData({
       name: doc.name || "",
       email: "",
@@ -213,12 +210,23 @@ const AdminDashboard = () => {
             ))}
           </nav>
         </div>
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="w-full text-left px-5 py-3 text-red-500 hover:bg-red-50 rounded-xl font-bold transition flex items-center gap-2"
-        >
-          ⬅ Back to Dashboard
-        </button>
+        
+        <div className="space-y-2">
+            {/* ✅ আপডেট: হোম বাটন যোগ করা হয়েছে */}
+            <button
+            onClick={() => navigate("/")}
+            className="w-full text-left px-5 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-xl font-bold transition flex items-center gap-2"
+            >
+            🏠 Home Page
+            </button>
+
+            <button
+            onClick={() => navigate("/dashboard")}
+            className="w-full text-left px-5 py-3 text-red-500 hover:bg-red-50 rounded-xl font-bold transition flex items-center gap-2"
+            >
+            ⬅ Go to User Dashboard
+            </button>
+        </div>
       </div>
 
       {/* Main Content */}

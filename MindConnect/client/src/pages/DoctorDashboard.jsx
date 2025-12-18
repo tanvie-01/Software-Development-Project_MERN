@@ -37,7 +37,6 @@ const DoctorDashboard = () => {
     } catch (e) {}
   };
 
-  // স্ট্যাটাস আপডেট ফাংশন (Approve/Cancel/Complete)
   const handleStatusUpdate = async (id, status) => {
     if (
       status === "cancelled" &&
@@ -92,7 +91,7 @@ const DoctorDashboard = () => {
         `https://mindconnect-backend-afyf.onrender.com/api/appointments/${currentApptId}`,
         { status: "completed", prescription: prescriptionText }
       );
-      toast.success("Prescription Sent Successfully! 🎉"); // টোস্ট
+      toast.success("Prescription Sent Successfully! 🎉");
       setShowModal(false);
       setPrescriptionText("");
       fetchDoctorAppointments(user.name);
@@ -132,12 +131,23 @@ const DoctorDashboard = () => {
             </button>
           </nav>
         </div>
-        <Link
-          to="/dashboard"
-          className="w-full text-left px-5 py-3 text-red-500 hover:bg-red-50 rounded-xl font-bold transition flex items-center gap-2"
-        >
-          ⬅ Back to Dashboard
-        </Link>
+        
+        <div className="space-y-2">
+            {/* ✅ আপডেট: হোম বাটন যোগ করা হয়েছে */}
+            <button
+            onClick={() => navigate("/")}
+            className="w-full text-left px-5 py-3 text-gray-600 hover:bg-teal-50 hover:text-teal-600 rounded-xl font-bold transition flex items-center gap-2"
+            >
+            🏠 Home Page
+            </button>
+            
+            <Link
+            to="/dashboard"
+            className="w-full text-left px-5 py-3 text-red-500 hover:bg-red-50 rounded-xl font-bold transition flex items-center gap-2"
+            >
+            ⬅ Go to User Dashboard
+            </Link>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -193,7 +203,6 @@ const DoctorDashboard = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 flex gap-2">
-                        {/* যদি Approved হয়, তাহলে প্রেসক্রিপশন বা ক্যান্সেল করা যাবে */}
                         {appt.status === "approved" && (
                           <>
                             <button
@@ -213,7 +222,6 @@ const DoctorDashboard = () => {
                           </>
                         )}
 
-                        {/* যদি Pending থাকে, ডাক্তার চাইলে ক্যান্সেল করতে পারে (অপশনাল) */}
                         {appt.status === "pending" && (
                           <span className="text-gray-400 text-xs italic">
                             Waiting for Admin Approval
