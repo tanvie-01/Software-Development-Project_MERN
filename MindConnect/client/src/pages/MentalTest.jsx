@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 
 // প্রশ্নের ভাণ্ডার (Fixed Data)
 const allQuestions = [
@@ -79,16 +79,6 @@ const MentalTest = () => {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    shuffleQuestions();
-    const userInfo = localStorage.getItem("userInfo");
-    if (userInfo) {
-      const parsedUser = JSON.parse(userInfo);
-      setUser(parsedUser);
-      fetchHistory(parsedUser._id);
-    }
-  }, []);
-
   const shuffleQuestions = () => {
     const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
     setQuestions(shuffled.slice(0, 10));
@@ -96,11 +86,11 @@ const MentalTest = () => {
 
   const fetchHistory = async (userId) => {
     try {
-      const { data } = await axios.get(
-        `https://mindconnect-backend-afyf.onrender.com/api/tests/${userId}`
+      const { data } = await api.get(
+        `/api/tests/${userId}`
       );
       setHistory(data);
-    } catch (error) {
+    } catch {
       console.error("Error fetching history");
     }
   };
@@ -129,8 +119,8 @@ const MentalTest = () => {
 
     if (user) {
       try {
-        await axios.post(
-          "https://mindconnect-backend-afyf.onrender.com/api/tests/save",
+        await api.post(
+          "/api/tests/save",
           {
             userId: user._id,
             userName: user.name,
@@ -139,7 +129,7 @@ const MentalTest = () => {
           }
         );
         fetchHistory(user._id);
-      } catch (error) {
+      } catch {
         console.error("Failed to save result");
       }
     }
@@ -156,6 +146,16 @@ const MentalTest = () => {
     localStorage.removeItem("userInfo");
     navigate("/login");
   };
+
+  useEffect(() => {
+    shuffleQuestions();
+    const userInfo = localStorage.getItem("userInfo");
+    if (userInfo) {
+      const parsedUser = JSON.parse(userInfo);
+      setUser(parsedUser);
+      fetchHistory(parsedUser._id);
+    }
+  }, []);
 
   if (questions.length === 0)
     return (

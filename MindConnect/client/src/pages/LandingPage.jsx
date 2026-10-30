@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import AiChatBot from "../components/AiChatBot";
 import myLocalHeroImage from "../assets/picture/mindconnect.jpg";
 
@@ -32,11 +32,11 @@ const LandingPage = () => {
 
     const fetchData = async () => {
       try {
-        const docRes = await axios.get(
-          "https://mindconnect-backend-afyf.onrender.com/api/doctors"
+        const docRes = await api.get(
+          "/api/doctors"
         );
-        const blogRes = await axios.get(
-          "https://mindconnect-backend-afyf.onrender.com/api/blogs"
+        const blogRes = await api.get(
+          "/api/blogs"
         );
         setDoctors(docRes.data);
         setBlogs(blogRes.data);

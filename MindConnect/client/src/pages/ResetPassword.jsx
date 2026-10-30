@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 
 const ResetPassword = () => {
   const { token } = useParams(); // URL থেকে টোকেন নিবে
@@ -10,8 +10,8 @@ const ResetPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post(
-        "https://mindconnect-backend-afyf.onrender.com/api/users/reset-password",
+      const { data } = await api.post(
+        "/api/users/reset-password",
         {
           token,
           newPassword,

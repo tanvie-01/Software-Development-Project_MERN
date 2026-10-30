@@ -36,7 +36,6 @@ function App() {
         <Route path="/doctor/:id" element={<DoctorDetails />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/blogs" element={<Blogs />} />
         <Route path="/blogs/:id" element={<BlogDetails />} />
         <Route path="/mental-test" element={<MentalTest />} />
         <Route path="/wallet" element={<Wallet />} />

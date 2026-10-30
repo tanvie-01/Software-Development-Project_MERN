@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 
 const MyAppointments = () => {
   const [user, setUser] = useState(null);
@@ -13,21 +13,13 @@ const MyAppointments = () => {
   const [comment, setComment] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const userInfo = localStorage.getItem("userInfo");
-    if (userInfo) {
-      setUser(JSON.parse(userInfo));
-      fetchAppointments(JSON.parse(userInfo)._id);
-    } else navigate("/login");
-  }, [navigate]);
-
   const fetchAppointments = async (userId) => {
     try {
-      const { data } = await axios.get(
-        `https://mindconnect-backend-afyf.onrender.com/api/appointments/${userId}`
+      const { data } = await api.get(
+        `/api/appointments/${userId}`
       );
       setAppointments(data);
-    } catch (e) {}
+    } catch (e) { console.error(e); }
   };
   const handleLogout = () => {
     localStorage.removeItem("userInfo");
@@ -44,16 +36,24 @@ const MyAppointments = () => {
 
   const submitReview = async () => {
     try {
-      await axios.post(
-        `https://mindconnect-backend-afyf.onrender.com/api/doctors/${reviewDoctorId}/reviews`,
-        { rating, comment, userName: user.name, userId: user._id }
+      await api.post(
+        `/api/doctors/${reviewDoctorId}/reviews`,
+        { rating, comment }
       );
       alert("Review Added!");
       setShowReviewModal(false);
     } catch (e) {
-      alert("Error");
+      alert(e.response?.data?.message || "Error");
     }
   };
+
+  useEffect(() => {
+    const userInfo = localStorage.getItem("userInfo");
+    if (userInfo) {
+      setUser(JSON.parse(userInfo));
+      fetchAppointments(JSON.parse(userInfo)._id);
+    } else navigate("/login");
+  }, [navigate]);
 
   if (!user) return null;
 

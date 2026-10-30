@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { toast } from "react-toastify";
 
 const AdminDashboard = () => {
@@ -36,54 +36,41 @@ const AdminDashboard = () => {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const userInfo = localStorage.getItem("userInfo");
-    if (userInfo) {
-      const user = JSON.parse(userInfo);
-      if (user.role !== "admin") navigate("/");
-      fetchStats();
-      fetchAppointments();
-      fetchDoctors();
-    } else {
-      navigate("/login");
-    }
-  }, [navigate]);
-
   const fetchStats = async () => {
     try {
-      const { data } = await axios.get(
-        "https://mindconnect-backend-afyf.onrender.com/api/users/stats"
+      const { data } = await api.get(
+        "/api/users/stats"
       );
       setStats(data);
-    } catch (e) {}
+    } catch (e) { console.error(e); }
   };
   const fetchAppointments = async () => {
     try {
-      const { data } = await axios.get(
-        "https://mindconnect-backend-afyf.onrender.com/api/appointments"
+      const { data } = await api.get(
+        "/api/appointments"
       );
       setAppointments(data);
-    } catch (e) {}
+    } catch (e) { console.error(e); }
   };
   const fetchDoctors = async () => {
     try {
-      const { data } = await axios.get(
-        "https://mindconnect-backend-afyf.onrender.com/api/doctors"
+      const { data } = await api.get(
+        "/api/doctors"
       );
       setDoctors(data);
-    } catch (e) {}
+    } catch (e) { console.error(e); }
   };
 
   const handleStatusUpdate = async (id, status) => {
     try {
-      await axios.put(
-        `https://mindconnect-backend-afyf.onrender.com/api/appointments/${id}`,
+      await api.put(
+        `/api/appointments/${id}`,
         { status }
       );
       fetchAppointments();
       fetchStats();
       toast.success(`Appointment ${status} successfully! ✅`);
-    } catch (e) {
+    } catch {
       toast.error("Failed to update status ❌");
     }
   };
@@ -92,14 +79,14 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(
-          `https://mindconnect-backend-afyf.onrender.com/api/doctors/${editDocId}`,
+        await api.put(
+          `/api/doctors/${editDocId}`,
           docData
         );
         toast.success("Doctor Updated Successfully! 👨‍⚕️");
       } else {
-        await axios.post(
-          "https://mindconnect-backend-afyf.onrender.com/api/doctors/add",
+        await api.post(
+          "/api/doctors/add",
           docData
         );
         toast.success("New Doctor Added! 🎉");
@@ -146,13 +133,13 @@ const AdminDashboard = () => {
   const handleDeleteDoctor = async (id) => {
     if (window.confirm("Delete this doctor?")) {
       try {
-        await axios.delete(
-          `https://mindconnect-backend-afyf.onrender.com/api/doctors/${id}`
+        await api.delete(
+          `/api/doctors/${id}`
         );
         fetchDoctors();
         fetchStats();
         toast.warning("Doctor Deleted 🗑️");
-      } catch (e) {
+      } catch {
         toast.error("Error deleting doctor");
       }
     }
@@ -162,8 +149,8 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-      await axios.post(
-        "https://mindconnect-backend-afyf.onrender.com/api/blogs",
+      await api.post(
+        "/api/blogs",
         {
           title: blogTitle,
           content: blogContent,
@@ -175,10 +162,26 @@ const AdminDashboard = () => {
       setBlogTitle("");
       setBlogContent("");
       setBlogImage("");
-    } catch (e) {
+    } catch {
       toast.error("Failed to post blog");
     }
   };
+
+  useEffect(() => {
+    const userInfo = localStorage.getItem("userInfo");
+    if (userInfo) {
+      const user = JSON.parse(userInfo);
+      if (user.role !== "admin") {
+        navigate("/");
+        return;
+      }
+      fetchStats();
+      fetchAppointments();
+      fetchDoctors();
+    } else {
+      navigate("/login");
+    }
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex font-sans">

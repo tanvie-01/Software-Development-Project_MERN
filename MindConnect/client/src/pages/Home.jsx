@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { toast } from "react-toastify";
 import AiChatBot from "../components/AiChatBot";
 
@@ -25,8 +25,8 @@ const Home = () => {
 
       const fetchLatestUserData = async () => {
         try {
-          const { data } = await axios.get(
-            `https://mindconnect-backend-afyf.onrender.com/api/users/${parsedUser._id}`
+          const { data } = await api.get(
+            `/api/users/${parsedUser._id}`
           );
           const updatedUserData = { ...data, token: parsedUser.token };
           setUser(updatedUserData);
@@ -47,11 +47,11 @@ const Home = () => {
 
     const fetchDoctors = async () => {
       try {
-        const { data } = await axios.get(
-          "https://mindconnect-backend-afyf.onrender.com/api/doctors"
+        const { data } = await api.get(
+          "/api/doctors"
         );
         setDoctors(data);
-      } catch (e) {}
+      } catch (e) { console.error(e); }
     };
     fetchDoctors();
   }, [navigate]);
@@ -78,8 +78,8 @@ const Home = () => {
 
     try {
       const config = { headers: { "Content-Type": "application/json" } };
-      const { data } = await axios.post(
-        "https://mindconnect-backend-afyf.onrender.com/api/appointments",
+      const { data } = await api.post(
+        "/api/appointments",
         {
           userId: user._id,
           userName: user.name,

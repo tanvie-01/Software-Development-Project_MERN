@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { toast } from "react-toastify";
 
 const ForgotPassword = () => {
@@ -9,8 +9,8 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post(
-        "https://mindconnect-backend-afyf.onrender.com/api/users/forgot-password",
+      const { data } = await api.post(
+        "/api/users/forgot-password",
         { email }
       );
       toast.success(data.message + " 📧"); // সাকসেস টোস্ট

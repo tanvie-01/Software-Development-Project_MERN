@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { toast } from "react-toastify"; // ১. ইম্পোর্ট
 
 const Login = () => {
@@ -11,8 +11,8 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post(
-        "https://mindconnect-backend-afyf.onrender.com/api/users/login",
+      const { data } = await api.post(
+        "/api/users/login",
         { email, password }
       );
       localStorage.setItem("userInfo", JSON.stringify(data));

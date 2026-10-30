@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 
 const Blogs = () => {
   const [blogs, setBlogs] = useState([]);
@@ -8,8 +8,8 @@ const Blogs = () => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const { data } = await axios.get(
-          "https://mindconnect-backend-afyf.onrender.com/api/blogs"
+        const { data } = await api.get(
+          "/api/blogs"
         );
         setBlogs(data);
       } catch (error) {

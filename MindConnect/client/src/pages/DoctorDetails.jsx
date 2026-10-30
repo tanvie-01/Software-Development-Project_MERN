@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 
 const DoctorDetails = () => {
   const { id } = useParams();
@@ -9,8 +9,8 @@ const DoctorDetails = () => {
   useEffect(() => {
     const fetchDoctor = async () => {
       try {
-        const { data } = await axios.get(
-          `https://mindconnect-backend-afyf.onrender.com/api/doctors/${id}`
+        const { data } = await api.get(
+          `/api/doctors/${id}`
         );
         setDoctor(data);
       } catch (error) {

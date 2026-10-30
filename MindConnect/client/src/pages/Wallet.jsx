@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { toast } from "react-toastify";
 
 const Wallet = () => {
@@ -14,25 +14,14 @@ const Wallet = () => {
   const [processing, setProcessing] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const userInfo = localStorage.getItem("userInfo");
-    if (userInfo) {
-      const parsedUser = JSON.parse(userInfo);
-      setUser(parsedUser);
-      fetchTransactions(parsedUser._id); // হিস্ট্রি কল করা
-    } else {
-      navigate("/login");
-    }
-  }, [navigate]);
-
   // ট্রানজেকশন ফেচ ফাংশন
   const fetchTransactions = async (userId) => {
     try {
-      const { data } = await axios.get(
-        `https://mindconnect-backend-afyf.onrender.com/api/transactions/${userId}`
+      const { data } = await api.get(
+        `/api/transactions/${userId}`
       );
       setTransactions(data);
-    } catch (error) {
+    } catch {
       console.error("Error fetching transactions");
     }
   };
@@ -49,8 +38,8 @@ const Wallet = () => {
 
     setTimeout(async () => {
       try {
-        const { data } = await axios.put(
-          "https://mindconnect-backend-afyf.onrender.com/api/users/add-money",
+        const { data } = await api.put(
+          "/api/users/add-money",
           {
             userId: user._id,
             amount: amount,
@@ -73,12 +62,23 @@ const Wallet = () => {
         setAmount("");
         setPhone("");
         setPin("");
-      } catch (error) {
+      } catch {
         setProcessing(false);
         toast.error("Payment Failed!");
       }
     }, 2000);
   };
+
+  useEffect(() => {
+    const userInfo = localStorage.getItem("userInfo");
+    if (userInfo) {
+      const parsedUser = JSON.parse(userInfo);
+      setUser(parsedUser);
+      fetchTransactions(parsedUser._id); // হিস্ট্রি কল করা
+    } else {
+      navigate("/login");
+    }
+  }, [navigate]);
 
   if (!user) return null;
 

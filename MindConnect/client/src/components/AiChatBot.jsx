@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../api";
 import { FaRobot, FaPaperPlane, FaTimes } from "react-icons/fa";
 
 const AiChatBot = () => {
@@ -10,11 +10,8 @@ const AiChatBot = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // লাইভ সার্ভারের লিংক
-  const API_URL = "https://mindconnect-backend-afyf.onrender.com";
-
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
     const newMessages = [...messages, { role: "user", text: input }];
     setMessages(newMessages);
@@ -22,10 +19,10 @@ const AiChatBot = () => {
     setIsLoading(true);
 
     try {
-      const { data } = await axios.post(`${API_URL}/api/ai/chat`, {
+      const { data } = await api.post("/api/ai/chat", {
         userMessage: input,
-        // হিস্ট্রি পাঠানোর লজিক (Context মনে রাখার জন্য)
-        history: newMessages.slice(-5).map(msg => ({
+        // হিস্ট্রি পাঠানোর লজিক (Context মনে রাখার জন্য) — নতুন মেসেজটা userMessage এ যায়, তাই হিস্ট্রিতে না
+        history: messages.slice(-6).map(msg => ({
             role: msg.role === "model" ? "model" : "user",
             parts: [{ text: msg.text }]
         })) 
@@ -34,7 +31,10 @@ const AiChatBot = () => {
       setMessages([...newMessages, { role: "model", text: data.reply }]);
     } catch (error) {
       console.error("AI Error:", error);
-      setMessages([...newMessages, { role: "model", text: "Sorry, server is busy. Please try again later." }]);
+      const errorText = error.response?.status === 429
+        ? error.response.data.message
+        : "Sorry, server is busy. Please try again later.";
+      setMessages([...newMessages, { role: "model", text: errorText }]);
     }
     setIsLoading(false);
   };

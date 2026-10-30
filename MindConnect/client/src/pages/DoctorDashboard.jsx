@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { toast } from "react-toastify";
 
 const DoctorDashboard = () => {
@@ -18,23 +18,13 @@ const DoctorDashboard = () => {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const userInfo = localStorage.getItem("userInfo");
-    if (userInfo) {
-      const parsedUser = JSON.parse(userInfo);
-      setUser(parsedUser);
-      if (parsedUser.role !== "doctor") navigate("/");
-      else fetchDoctorAppointments(parsedUser.name);
-    } else navigate("/login");
-  }, [navigate]);
-
-  const fetchDoctorAppointments = async (doctorName) => {
+  const fetchDoctorAppointments = async () => {
     try {
-      const { data } = await axios.get(
-        `https://mindconnect-backend-afyf.onrender.com/api/appointments/doctor/${doctorName}`
+      const { data } = await api.get(
+        "/api/appointments/doctor/me"
       );
       setAppointments(data);
-    } catch (e) {}
+    } catch (e) { console.error(e); }
   };
 
   const handleStatusUpdate = async (id, status) => {
@@ -45,14 +35,14 @@ const DoctorDashboard = () => {
       return;
 
     try {
-      await axios.put(
-        `https://mindconnect-backend-afyf.onrender.com/api/appointments/${id}`,
+      await api.put(
+        `/api/appointments/${id}`,
         { status }
       );
-      fetchDoctorAppointments(user.name);
+      fetchDoctorAppointments();
       alert(`Appointment marked as ${status}`);
       toast.success(`Status Updated to ${status}! ✅`);
-    } catch (e) {
+    } catch {
       alert("Failed to update status");
     }
   };
@@ -60,8 +50,8 @@ const DoctorDashboard = () => {
   const handlePostBlog = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(
-        "https://mindconnect-backend-afyf.onrender.com/api/blogs",
+      await api.post(
+        "/api/blogs",
         {
           title: blogTitle,
           content: blogContent,
@@ -73,7 +63,7 @@ const DoctorDashboard = () => {
       setBlogTitle("");
       setBlogContent("");
       setBlogImage("");
-    } catch (e) {
+    } catch {
       alert("Error");
     }
   };
@@ -87,18 +77,28 @@ const DoctorDashboard = () => {
     if (!prescriptionText)
       return toast.warning("Please write a prescription! 📝");
     try {
-      await axios.put(
-        `https://mindconnect-backend-afyf.onrender.com/api/appointments/${currentApptId}`,
+      await api.put(
+        `/api/appointments/${currentApptId}`,
         { status: "completed", prescription: prescriptionText }
       );
       toast.success("Prescription Sent Successfully! 🎉");
       setShowModal(false);
       setPrescriptionText("");
-      fetchDoctorAppointments(user.name);
-    } catch (e) {
+      fetchDoctorAppointments();
+    } catch {
       toast.error("Error sending prescription");
     }
   };
+
+  useEffect(() => {
+    const userInfo = localStorage.getItem("userInfo");
+    if (userInfo) {
+      const parsedUser = JSON.parse(userInfo);
+      setUser(parsedUser);
+      if (parsedUser.role !== "doctor") navigate("/");
+      else fetchDoctorAppointments();
+    } else navigate("/login");
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex font-sans">

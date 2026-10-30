@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { toast } from "react-toastify"; // ইম্পোর্ট
 
 const Register = () => {
@@ -12,8 +12,8 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(
-        "https://mindconnect-backend-afyf.onrender.com/api/users/register",
+      await api.post(
+        "/api/users/register",
         { name, email, password }
       );
       toast.success("Registration Successful! Please Login. 🎉"); // সাকসেস টোস্ট

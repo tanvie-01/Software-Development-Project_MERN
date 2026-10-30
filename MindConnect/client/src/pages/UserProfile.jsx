@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { toast } from "react-toastify";
 
 const UserProfile = () => {
@@ -27,30 +27,31 @@ const UserProfile = () => {
     e.preventDefault();
     if (password !== confirmPassword) return alert("Passwords do not match!");
     try {
-      const { data } = await axios.put(
-        "https://mindconnect-backend-afyf.onrender.com/api/users/profile",
-        { _id: user._id, name, email, password: password || undefined }
+      const { data } = await api.put(
+        "/api/users/profile",
+        { name, email, password: password || undefined }
       );
       localStorage.setItem("userInfo", JSON.stringify(data));
+      setUser(data);
       toast.success("Profile Updated Successfully! 🎉");
       setPassword("");
       setConfirmPassword("");
     } catch (e) {
-      alert("Update Failed");
+      alert(e.response?.data?.message || "Update Failed");
     }
   };
 
   const confirmDeleteAccount = async () => {
     if (!deletePassword) return alert("Enter password");
     try {
-      await axios.post(
-        `https://mindconnect-backend-afyf.onrender.com/api/users/delete-account`,
+      await api.post(
+        `/api/users/delete-account`,
         { userId: user._id, password: deletePassword }
       );
       toast.warning("Account Deleted. Goodbye! 👋");
       localStorage.removeItem("userInfo");
       navigate("/login");
-    } catch (e) {
+    } catch {
       alert("Wrong Password");
     }
   };

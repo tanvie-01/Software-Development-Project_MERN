@@ -10,11 +10,15 @@ const userSchema = mongoose.Schema(
     
     // নতুন ফিল্ড: ওয়ালেট ব্যালেন্স (ডিফল্ট ০ টাকা)
     walletBalance: { type: Number, default: 0 },
+
+    // পাসওয়ার্ড রিসেট টোকেন (hash করে রাখা হয়) + মেয়াদ
+    resetPasswordToken: { type: String },
+    resetPasswordExpire: { type: Date },
   },
   { timestamps: true }
 );
 
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
   if (!this.isModified("password")) {
     return;
   }
